@@ -7,7 +7,7 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-#define TEMPLATE_STR "{\"gateid\":\"/node\",\"time\":\"/timestamp\",\"source\":\"da/db\",\"meter\":[{\"id\":\"/group\",\"status\":\"1\",\"name\":\"/group\",\"values\":\"/values\"}]}"
+#define TEMPLATE_STR "{\"gateid\":\"/node\",\"time\":\"/timestamp\",\"source\":\"da/db\",\"meter\":[{\"id\":\"/group\",\"status\":\"1\",\"name\":\"/node\",\"values\":\"/values\"}]}"
 char* transform(char* original_str);
 #ifdef __cplusplus
 }
