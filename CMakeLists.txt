@@ -1,7 +1,6 @@
 cmake_minimum_required(VERSION 3.28)
 project(plugin-water LANGUAGES C CXX)
 
-set(CMAKE_TOOLCHAIN_FILE "/software/vcpkg/scripts/buildsystems/vcpkg.cmake")
 set(NEURON_SDK_PATH /projects/neuron-sdk-2.10.2)
 
 # 设置 C/C++ 标准
@@ -31,12 +30,10 @@ add_library(${PROJECT_NAME} SHARED
         mqtt_plugin_intf.cpp  # 确保此文件包含 mqtt_plugin_open 实现
         json_transform.cpp
         server.cpp
-        logger/logger.cpp
 )
 
 # 链接依赖库
 target_link_libraries(${PROJECT_NAME}
         neuron-base
         yyjson::yyjson
-        ${CMAKE_THREAD_LIBS_INIT}  # 例如 -pthread
 )
