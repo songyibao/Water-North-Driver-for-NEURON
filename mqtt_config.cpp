@@ -295,25 +295,20 @@ int mqtt_config_parse(neu_plugin_t* plugin, const char* setting,
     neu_json_elem_t format = {.name = "format", .t = NEU_JSON_INT};
 
 
-    neu_json_elem_t topic;
-    topic.name = "topic";
-    topic.t = NEU_JSON_STR;
-    topic.v.val_str = NULL;
-    topic.attribute = NEU_JSON_ATTRIBUTE_OPTIONAL; // for backward compatibility
 
 
-    neu_json_elem_t write_req_topic;
-    write_req_topic.name = "write-req-topic";
-    write_req_topic.t = NEU_JSON_STR;
-    write_req_topic.v.val_str = NULL;
-    write_req_topic.attribute = NEU_JSON_ATTRIBUTE_OPTIONAL; // for backward compatibility
-
-
-    neu_json_elem_t write_resp_topic;
-    write_resp_topic.name = "write-resp-topic";
-    write_resp_topic.t = NEU_JSON_STR;
-    write_resp_topic.v.val_str = NULL;
-    write_resp_topic.attribute = NEU_JSON_ATTRIBUTE_OPTIONAL; // for backward compatibility
+    // neu_json_elem_t write_req_topic;
+    // write_req_topic.name = "write-req-topic";
+    // write_req_topic.t = NEU_JSON_STR;
+    // write_req_topic.v.val_str = NULL;
+    // write_req_topic.attribute = NEU_JSON_ATTRIBUTE_OPTIONAL; // for backward compatibility
+    //
+    //
+    // neu_json_elem_t write_resp_topic;
+    // write_resp_topic.name = "write-resp-topic";
+    // write_resp_topic.t = NEU_JSON_STR;
+    // write_resp_topic.v.val_str = NULL;
+    // write_resp_topic.attribute = NEU_JSON_ATTRIBUTE_OPTIONAL; // for backward compatibility
 
     neu_json_elem_t offline_cache;
     offline_cache.name = "offline-cache";
@@ -358,14 +353,38 @@ int mqtt_config_parse(neu_plugin_t* plugin, const char* setting,
         .name = "upload_drv_state_interval", .t = NEU_JSON_INT
     };
 
+    neu_json_elem_t companyShortName = {
+       .name = "companyShortName",
+       .t = NEU_JSON_STR
+    };
+
+    neu_json_elem_t regions_count = {
+        .name = "regions_count",
+        .t = NEU_JSON_INT
+     };
+    ret = neu_parse_param(setting, &err_param, 1, &regions_count);
+    if (0 != ret)
+    {
+        plog_error(plugin, "parsing regions_count fail, key: `%s`.", err_param);
+        goto error;
+    }
+    server->regions_count = regions_count.v.val_int;
+
+    ret = neu_parse_param(setting, &err_param, 1, &companyShortName);
+    if (0!= ret)
+    {
+        plog_error(plugin, "parsing setting fail, key: `%s`", err_param);
+        free(err_param);
+        return -1;
+    }
+
     if (NULL == setting || NULL == config)
     {
         plog_error(plugin, "invalid argument, null pointer");
         return -1;
     }
 
-    ret = neu_parse_param(setting, &err_param, 9, &client_id, &qos, &format,
-                          &write_req_topic, &write_resp_topic, &host, &port,&topic,&interval);
+    ret = neu_parse_param(setting, &err_param, 6, &client_id, &qos, &format, &host, &port,&interval);
     if (0 != ret)
     {
         plog_error(plugin, "parsing setting fail, key: `%s`", err_param);
@@ -378,6 +397,8 @@ int mqtt_config_parse(neu_plugin_t* plugin, const char* setting,
         plog_error(plugin, "parsing mqtt version fail, key: `%s`.", err_param);
         goto error;
     }
+
+
 
     // client-id, required
     if (0 == strlen(client_id.v.val_str))
@@ -404,31 +425,30 @@ int mqtt_config_parse(neu_plugin_t* plugin, const char* setting,
     }
 
     // upload topic
-    if (NULL == topic.v.val_str &&
-        0 > neu_asprintf(&topic.v.val_str, "/neuron/%s/upload",
-                         plugin->common.name))
-    {
-        plog_error(plugin, "setting write request topic error");
-        goto error;
-    }
+    // if (NULL == topic.v.val_str &&
+    //     0 > neu_asprintf(&topic.v.val_str, "/%s/%s/upload",companyShortName.v.val_str,plugin->common.name))
+    // {
+    //     plog_error(plugin, "setting write request topic error");
+    //     goto error;
+    // }
 
-    // write request topic
-    if (NULL == write_req_topic.v.val_str &&
-        0 > neu_asprintf(&write_req_topic.v.val_str, "/neuron/%s/write/req",
-                         plugin->common.name))
-    {
-        plog_error(plugin, "setting write request topic error");
-        goto error;
-    }
-
-    // write response topic
-    if (NULL == write_resp_topic.v.val_str &&
-        0 > neu_asprintf(&write_resp_topic.v.val_str, "/neuron/%s/write/resp",
-                         plugin->common.name))
-    {
-        plog_error(plugin, "setting write response topic error");
-        goto error;
-    }
+    // // write request topic
+    // if (NULL == write_req_topic.v.val_str &&
+    //     0 > neu_asprintf(&write_req_topic.v.val_str, "/neuron/%s/write/req",
+    //                      plugin->common.name))
+    // {
+    //     plog_error(plugin, "setting write request topic error");
+    //     goto error;
+    // }
+    //
+    // // write response topic
+    // if (NULL == write_resp_topic.v.val_str &&
+    //     0 > neu_asprintf(&write_resp_topic.v.val_str, "/neuron/%s/write/resp",
+    //                      plugin->common.name))
+    // {
+    //     plog_error(plugin, "setting write response topic error");
+    //     goto error;
+    // }
 
     // offline cache
     ret = parse_cache_params(plugin, setting, &offline_cache, &cache_mem_size,
@@ -485,8 +505,8 @@ int mqtt_config_parse(neu_plugin_t* plugin, const char* setting,
     config->qos = static_cast<neu_mqtt_qos_e>(qos.v.val_int);
     config->format = static_cast<mqtt_upload_format_e>(format.v.val_int);
 
-    config->write_req_topic = write_req_topic.v.val_str;
-    config->write_resp_topic = write_resp_topic.v.val_str;
+    // config->write_req_topic = write_req_topic.v.val_str;
+    // config->write_resp_topic = write_resp_topic.v.val_str;
     config->cache = offline_cache.v.val_bool;
     config->cache_mem_size = cache_mem_size.v.val_int * MB;
     config->cache_disk_size = cache_disk_size.v.val_int * MB;
@@ -505,8 +525,9 @@ int mqtt_config_parse(neu_plugin_t* plugin, const char* setting,
     config->heartbeat_interval = upload_drv_state_interval.v.val_int;
 
 
-    server->SetTopic(topic.v.val_str);
-    server->SetInterval(interval.v.val_int);
+    server->setPubTopic("/"+std::string(companyShortName.v.val_str)+"/pub/pump_room/"+std::string(client_id.v.val_str));
+    server->setSubTopic("/"+std::string(companyShortName.v.val_str)+"/sub/pump_room/"+std::string(client_id.v.val_str));
+    server->setInterval(interval.v.val_int);
     // server->SetSouthNodeNum(south_node_need_num.v.val_int);
 
     plog_notice(plugin, "config MQTT version    : %d", config->version);
@@ -514,11 +535,12 @@ int mqtt_config_parse(neu_plugin_t* plugin, const char* setting,
     plog_notice(plugin, "config qos             : %d", config->qos);
     plog_notice(plugin, "config format          : %s",
                 mqtt_upload_format_str(config->format));
-    plog_notice(plugin, "config collect interval : %u", server->GetInterval());
-    plog_notice(plugin, "config upload-topic : %s", server->GetTopic().c_str());
-    plog_notice(plugin, "config write-req-topic : %s", config->write_req_topic);
-    plog_notice(plugin, "config write-resp-topic: %s",
-                config->write_resp_topic);
+    plog_notice(plugin, "config collect interval : %u", server->getInterval());
+    plog_notice(plugin, "config pub_topic : %s", server->getPubTopic().c_str());
+    plog_notice(plugin, "config sub_topic : %s", server->getSubTopic().c_str());
+    // plog_notice(plugin, "config write-req-topic : %s", config->write_req_topic);
+    // plog_notice(plugin, "config write-resp-topic: %s",
+    //             config->write_resp_topic);
     plog_notice(plugin, "config upload-drv-state: %d",
                 config->upload_drv_state);
     if (config->upload_drv_state)
@@ -573,9 +595,9 @@ int mqtt_config_parse(neu_plugin_t* plugin, const char* setting,
 error:
     free(err_param);
     free(client_id.v.val_str);
-    free(topic.v.val_str);
-    free(write_req_topic.v.val_str);
-    free(write_resp_topic.v.val_str);
+    // free(topic.v.val_str);
+    // free(write_req_topic.v.val_str);
+    // free(write_resp_topic.v.val_str);
     free(host.v.val_str);
     free(username.v.val_str);
     free(password.v.val_str);
@@ -584,6 +606,7 @@ error:
     free(key.v.val_str);
     free(keypass.v.val_str);
     free(upload_drv_state_topic.v.val_str);
+    free(companyShortName.v.val_str);
     return -1;
 }
 
