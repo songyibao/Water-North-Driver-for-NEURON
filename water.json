@@ -1,4 +1,15 @@
 {
+  "regions_count": {
+    "name": "需要采集的水房工作区域个数",
+    "name_zh": "需要采集的水房工作区域个数",
+    "type": "int",
+    "attribute": "required",
+    "default": 2,
+    "valid": {
+      "min": 1,
+      "max": 5
+    }
+  },
   "version": {
     "name": "MQTT Version",
     "name_zh": "MQTT 版本",
@@ -73,44 +84,31 @@
     "attribute": "required",
     "default": 1000,
     "valid": {
-      "min": 200,
+      "min": 500,
       "max": 10000
     }
   },
-  "topic": {
-    "name": "Upload Topic",
-    "name_zh": "上报主题",
-    "description": "MQTT topic to upload data.",
-    "description_zh": "数据上报主题",
+  "companyShortName": {
+    "name": "Company Short Name",
+    "name_zh": "供水公司简称",
+    "type": "map",
     "attribute": "required",
-    "type": "string",
-    "default": "/neuron/${random_str}/upload",
+    "default": "hr",
     "valid": {
-      "length": 255
-    }
-  },
-  "write-req-topic": {
-    "name": "Write Request Topic",
-    "name_zh": "写请求主题",
-    "description": "MQTT topic to receive write request messages.",
-    "description_zh": "接收点位写入请求的 MQTT 主题。",
-    "attribute": "required",
-    "type": "string",
-    "default": "/neuron/${random_str}/write/req",
-    "valid": {
-      "length": 255
-    }
-  },
-  "write-resp-topic": {
-    "name": "Write Response Topic",
-    "name_zh": "写响应主题",
-    "description": "MQTT topic to send write response messages.",
-    "description_zh": "发送点位写入响应的 MQTT 主题。",
-    "attribute": "required",
-    "type": "string",
-    "default": "/neuron/${random_str}/write/resp",
-    "valid": {
-      "length": 255
+      "map": [
+        {
+          "key": "海润集团",
+          "value": "hr"
+        },
+        {
+          "key": "胶州水司",
+          "value": "jz"
+        },
+        {
+          "key": "高新水务",
+          "value": "gx"
+        }
+      ]
     }
   },
   "upload_drv_state": {
