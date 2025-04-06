@@ -233,7 +233,16 @@ void Server::UpdateGroupName(const std::string& node, const std::string& group, 
         return;
     }
     if (group == new_group) {
-        plog_warn(plugin_, "新旧组名相同,无需更新");
+        plog_warn(plugin_, "新旧组名相同,无需更新,检查采集间隔是否被修改");
+        int interval = GetGroupInterval(node,group);
+        if (interval == -1) {
+            plog_error(plugin_, "更新组信息后获取组采集间隔失败");
+            return;
+        }
+        if (interval != interval_) {
+            plog_warn(plugin_, "更新组信息后获取组采集间隔与配置采集间隔不一致，更新后采集间隔为%d，要求的采集间隔为%d,进行更新纠正", interval,interval_);
+            UpdateNodeGroupInterval(node, group);
+        }
         return;
     }
     size_t old_size = GetTotalNodeGroupPairs();
