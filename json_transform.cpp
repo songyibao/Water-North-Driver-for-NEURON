@@ -99,6 +99,16 @@ void format_time_fields(yyjson_mut_doc *template_mut_doc) {
         yyjson_mut_ptr_replace(root,"/time",formatted_val);
     }
 }
+// 设置状态位为 "2",表示有异常
+void set_error_state(yyjson_mut_doc *template_mut_doc) {
+
+    yyjson_mut_val *root = yyjson_mut_doc_get_root(template_mut_doc);
+    if (yyjson_mut_is_obj(root)) {
+        yyjson_mut_val *new_status = yyjson_mut_str(template_mut_doc, "2");
+        yyjson_mut_ptr_replace(root, "/meter/0/status", new_status);
+    }
+}
+
 
 char *transform(char *original_str) {
     yyjson_doc *original_doc = yyjson_read(original_str, strlen(original_str), 0);
@@ -110,6 +120,16 @@ char *transform(char *original_str) {
 
     start_process(original_mut_doc, template_mut_doc);
     format_time_fields(template_mut_doc);
+
+    // 如果original_mut_doc中 errors 为 "{}"代表正常,否则代表异常,调用 set_error_state
+    yyjson_mut_val *errors = yyjson_mut_obj_get(yyjson_mut_doc_get_root(original_mut_doc), "errors");
+    if (yyjson_mut_is_obj(errors) && yyjson_mut_obj_size(errors) > 0) {
+        // std::cout << "errors is not empty" << std::endl;
+        set_error_state(template_mut_doc);
+    } else {
+        // std::cout << "errors is empty" << std::endl;
+    }
+
     char *result = yyjson_mut_write(template_mut_doc, 0, nullptr);
 
     yyjson_mut_doc_free(original_mut_doc);
